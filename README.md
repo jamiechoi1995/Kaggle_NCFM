@@ -1,4 +1,4 @@
-# Kaggle https://challenger.ai/competition/scene
+# https://challenger.ai/competition/scene
 Using Keras+TensorFlow to solve https://challenger.ai/competition/scene
 
 This code is forked from Kaggle_NCFM and I modified it to apply for the competition above.
