@@ -1,5 +1,6 @@
 from keras.models import load_model
 import os
+import json
 from keras.preprocessing.image import ImageDataGenerator
 import numpy as np
 
@@ -9,13 +10,10 @@ img_height = 299
 batch_size = 32
 nbr_test_samples = 1000
 
-FishNames = ['ALB', 'BET', 'DOL', 'LAG', 'NoF', 'OTHER', 'SHARK', 'YFT']
+weights_path = ('./weights.h5')
 
-root_path = '/Users/pengpai/Desktop/python/DeepLearning/Kaggle/NCFM'
-
-weights_path = os.path.join(root_path, 'weights.h5')
-
-test_data_dir = os.path.join(root_path, 'data/test_stg1/')
+#test_data_dir = ('/media/wcai/8844289a-3afc-4ca9-98c0-a29abdb55c48/tdtd/wcai/ai_challenger_scene_test_a_20170922')
+test_data_dir = ('/home/wcai/Desktop/0/')
 
 # test data generator for prediction
 test_datagen = ImageDataGenerator(rescale=1./255)
@@ -36,18 +34,18 @@ InceptionV3_model = load_model(weights_path)
 print('Begin to predict for testing data ...')
 predictions = InceptionV3_model.predict_generator(test_generator, nbr_test_samples)
 
-np.savetxt(os.path.join(root_path, 'predictions.txt'), predictions)
-
-
-print('Begin to write submission file ..')
-f_submit = open(os.path.join(root_path, 'submit.csv'), 'w')
-f_submit.write('image,ALB,BET,DOL,LAG,NoF,OTHER,SHARK,YFT\n')
+result=[]
 for i, image_name in enumerate(test_image_list):
-    pred = ['%.6f' % p for p in predictions[i, :]]
-    if i % 100 == 0:
-        print('{} / {}'.format(i, nbr_test_samples))
-    f_submit.write('%s,%s\n' % (os.path.basename(image_name), ','.join(pred)))
+    temp_dict = {}
+    index=[]
+    prediction = sorted(enumerate(predictions[i]), key=lambda x:x[1], reverse=True)[:3]
+    for x, y in prediction:
+        index.append(x)
+        temp_dict['image_id'] = image_name.split('/')[1]
+        temp_dict['label_id'] = index
+    result.append(temp_dict)
 
-f_submit.close()
+with open('submit.json', 'w') as f:
+    json.dump(result, f)
 
 print('Submission file successfully generated!')
