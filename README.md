@@ -1,19 +1,21 @@
-# Kaggle_NCFM
-Using Keras+TensorFlow to solve NCFM-Leadboard Top 5%
+# Kaggle https://challenger.ai/competition/scene
+Using Keras+TensorFlow to solve https://challenger.ai/competition/scene
+
+This code is forked from Kaggle_NCFM and I modified it to apply for the competition above.
 
 **Make sure that you have installed latest version of Keras since Inception_V3 is only provided 
 in the latest version!**
 
-Step1. Download dataset from https://www.kaggle.com/c/the-nature-conservancy-fisheries-monitoring/data
+Step1. Download dataset from https://challenger.ai/competition/scene/subject
 
-Step2. Use ```split_train_val.py``` to split the labed data into training and validation. 
-Usually, 80% for training and 20% for validation is a good start. 
+Step2. Use ```parse_json.py``` to split the labed data into training and validation. 
 
 Step3. Use ```train.py``` to train a Inception_V3 network. The best model and its weights will be saved as "weights.h5".
 
-Step4. Use ```predict.py``` to predict labels for testing images and generating the submission file "submit.csv".
-Note that such submission results in a 50% ranking in the leaderboard. 
+Step4. Use ```predict.py``` to predict labels for testing images and generating the submission file "submit.json".
+Note that such submission results in a 0.93310 score in the leaderboard. 
 
+----
 Step5. In order to improve our ranking, we use data augmentation for testing images. The intuition behind is similar to multi-crops,
 which makes use of voting ideas. ```predict_average_augmentation.py``` implements such idea and results in a 10% ranking (Public Score: 1.09) in the leaderboard.
 
