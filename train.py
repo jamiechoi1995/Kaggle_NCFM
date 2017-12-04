@@ -6,20 +6,20 @@ from keras.optimizers import RMSprop, SGD
 from keras.callbacks import ModelCheckpoint
 from keras.preprocessing.image import ImageDataGenerator
 
-learning_rate = 0.0001
-img_width = 299
-img_height = 299
-nbr_train_samples = 53879
-nbr_validation_samples = 7120
-nbr_epochs = 25
-batch_size = 32
-
 train_data_dir = '/media/wcai/8844289a-3afc-4ca9-98c0-a29abdb55c48/tdtd/wcai/ai_challenger_scene_train_20170904/scene_train_images_20170904'
 val_data_dir = '/media/wcai/8844289a-3afc-4ca9-98c0-a29abdb55c48/tdtd/wcai/ai_challenger_scene_validation_20170908/scene_validation_images_20170908'
 
-FishNames = []
+learning_rate = 0.0001
+SIZE = (299, 299)
+nbr_train_samples = sum([len(files) for r, d, files in os.walk(train_data_dir)])
+nbr_validation_samples = sum([len(files) for r, d, files in os.walk(val_data_dir)])
+
+nbr_epochs = 25
+batch_size = 32
+
+Classes = []
 for num in range(0,80):
-        FishNames.append(str(num))
+        Classes.append(str(num))
 
 print('Loading InceptionV3 Weights ...')
 InceptionV3_notop = InceptionV3(include_top=False, weights='imagenet',
@@ -37,12 +37,9 @@ InceptionV3_model = Model(InceptionV3_notop.input, output)
 # InceptionV3_model = load_model('weights.h5') #load model to continue your training
 #InceptionV3_model.summary()
 
+# optimizer=Adam(lr=0.001)
 optimizer = SGD(lr = learning_rate, momentum = 0.9, decay = 0.0, nesterov = True)
 InceptionV3_model.compile(loss='categorical_crossentropy', optimizer = optimizer, metrics = ['accuracy'])
-
-# autosave best Model
-best_model_file = "./weights.h5"
-best_model = ModelCheckpoint(best_model_file, monitor='val_acc', verbose = 1, save_best_only = True)
 
 # this is the augmentation configuration we will use for training
 train_datagen = ImageDataGenerator(
@@ -60,23 +57,29 @@ val_datagen = ImageDataGenerator(rescale=1./255)
 
 train_generator = train_datagen.flow_from_directory(
         train_data_dir,
-        target_size = (img_width, img_height),
+        target_size = SIZE,
         batch_size = batch_size,
         shuffle = True,
         # save_to_dir = '/Users/pengpai/Desktop/python/DeepLearning/Kaggle/NCFM/data/visualization',
         # save_prefix = 'aug',
-        classes = FishNames,
+        classes = Classes,
         class_mode = 'categorical')
 
 validation_generator = val_datagen.flow_from_directory(
         val_data_dir,
-        target_size=(img_width, img_height),
+        target_size= SIZE,
         batch_size=batch_size,
         shuffle = True,
         #save_to_dir = '/Users/pengpai/Desktop/python/DeepLearning/Kaggle/NCFM/data/visulization',
         #save_prefix = 'aug',
-        classes = FishNames,
+        classes = Classes,
         class_mode = 'categorical')
+
+early_stopping = EarlyStopping(patience=5)
+
+# autosave best Model
+best_model_file = "./best_weights.h5"
+best_model = ModelCheckpoint(best_model_file, monitor='val_acc', verbose = 1, save_best_only = True)
 
 InceptionV3_model.fit_generator(
         train_generator,
@@ -84,4 +87,6 @@ InceptionV3_model.fit_generator(
         nb_epoch = nbr_epochs,
         validation_data = validation_generator,
         validation_steps = nbr_validation_samples/batch_size,
-        callbacks = [best_model])
+        callbacks = [early_stopping, best_model])
+
+InceptionV3_model.save('inceptv3_final.h5')
